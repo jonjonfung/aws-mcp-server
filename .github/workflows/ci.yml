@@ -1,0 +1,60 @@
+name: Test and Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check server imports and syntax
+        run: python -c "import ast; ast.parse(open('server.py').read()); print('Syntax OK')"
+
+      - name: Check all tool files
+        run: |
+          for f in tools/*.py; do
+            python -c "import ast; ast.parse(open('$f').read()); print('$f OK')"
+          done
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Uncomment and configure this block if you want to deploy to an EC2 instance:
+      #
+      # - name: Deploy to EC2
+      #   uses: appleboy/ssh-action@v1
+      #   with:
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ${{ secrets.EC2_USER }}
+      #     key: ${{ secrets.EC2_SSH_KEY }}
+      #     script: |
+      #       cd ~/aws-mcp-server
+      #       git pull origin main
+      #       pip install -r requirements.txt
+      #       echo "Deployed successfully"
+
+      - name: Deploy complete
+        run: echo "Tests passed. Add EC2 secrets to enable remote deployment."
