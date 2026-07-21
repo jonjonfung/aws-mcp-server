@@ -1,0 +1,7 @@
+mcp
+boto3
+awswrangler
+pandas
+numpy
+joblib
+python-dotenv
